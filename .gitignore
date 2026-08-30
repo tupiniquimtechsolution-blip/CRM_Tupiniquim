@@ -1,0 +1,26 @@
+# Dependências e builds
+node_modules/
+.next/
+out/
+coverage/
+playwright-report/
+test-results/
+playwright/.auth/
+.playwright-browsers/
+.tmp/
+.backups/
+.restore-drills/
+artifacts/load/
+
+# Ambiente e segredos
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs e arquivos locais
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

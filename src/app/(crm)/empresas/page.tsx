@@ -1,0 +1,17 @@
+import { Building2, Search } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
+import { QuickCreate, fieldClass, labelClass, submitClass } from "@/components/quick-create";
+import { StatusBadge } from "@/components/status-badge";
+import { getCurrentActor } from "@/lib/current-actor";
+import { companiesView } from "@/lib/view-data";
+import { createCompanyAction } from "../actions";
+
+export const metadata = { title: "Empresas" };
+
+export default async function CompaniesPage() {
+  const companies = await companiesView(await getCurrentActor());
+  return <div className="space-y-6"><PageHeader eyebrow="CRM essencial" title="Empresas" description="Visão central das contas, contatos e estágio de relacionamento." action={<QuickCreate label="Nova empresa"><form action={createCompanyAction} className="grid gap-3"><label className={labelClass}>Nome *<input className={fieldClass} name="name" required /></label><div className="grid grid-cols-2 gap-3"><label className={labelClass}>Segmento *<input className={fieldClass} name="segment" required /></label><label className={labelClass}>Origem *<input className={fieldClass} name="source" required /></label></div><label className={labelClass}>CNPJ/CPF<input className={fieldClass} name="document" /></label><div className="grid grid-cols-2 gap-3"><label className={labelClass}>E-mail<input className={fieldClass} name="email" type="email" /></label><label className={labelClass}>Telefone<input className={fieldClass} name="phone" /></label></div><button className={submitClass}>Salvar empresa</button></form></QuickCreate>} />
+    <div className="flex flex-col gap-3 sm:flex-row"><label className="relative flex-1"><Search className="absolute left-3 top-3 text-slate-400" size={17} /><input className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm outline-none focus:border-amber-500" placeholder="Buscar por nome ou documento" /></label><select aria-label="Filtrar segmento" className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-600"><option>Todos os segmentos</option><option>Indústria</option><option>Saúde</option><option>Varejo</option></select></div>
+    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left"><thead className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500"><tr><th className="px-5 py-3">Empresa</th><th className="px-5 py-3">Segmento</th><th className="px-5 py-3">Ciclo de vida</th><th className="px-5 py-3">Responsável</th><th className="px-5 py-3 text-right">Contatos</th></tr></thead><tbody className="divide-y divide-slate-100">{companies.map((company) => <tr key={company.id} className="hover:bg-amber-50/30"><td className="px-5 py-4"><div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-xl bg-slate-100 text-slate-500"><Building2 size={17} /></span><strong className="text-sm text-slate-900">{company.name}</strong></div></td><td className="px-5 py-4 text-sm text-slate-600">{company.segment}</td><td className="px-5 py-4"><StatusBadge>{company.lifecycle}</StatusBadge></td><td className="px-5 py-4 text-sm text-slate-600">{company.owner}</td><td className="px-5 py-4 text-right text-sm font-semibold text-slate-700">{company.contacts}</td></tr>)}</tbody></table></div><div className="border-t border-slate-100 px-5 py-3 text-xs text-slate-500">{companies.length} empresas exibidas</div></section>
+  </div>;
+}

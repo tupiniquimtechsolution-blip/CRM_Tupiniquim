@@ -1,0 +1,16 @@
+{
+  "mode": "dry-run",
+  "input": "tests\\fixtures\\final-migration.csv",
+  "sha256": "ec1b0f75a88befaa5ce73b876c0875b3c3774db8f904888e1300c0d3cc201899",
+  "rows": 1,
+  "headers": [
+    "companyName",
+    "contactName",
+    "email",
+    "source"
+  ],
+  "missingHeaders": [],
+  "errors": [],
+  "valid": true,
+  "createdAt": "2026-08-13T13:14:56.050Z"
+}
