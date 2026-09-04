@@ -37,12 +37,12 @@ export function AppShell({ actor, children }: { actor: TenantActor; children: Re
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-slate-950 px-4 py-6 lg:flex">
         <Link href="/dashboard" className="flex items-center gap-3 px-2">
           <span className="grid size-10 place-items-center rounded-xl bg-amber-500 text-lg font-black text-slate-950">T</span>
-          <span><strong className="block text-sm tracking-wide text-white">TUPINIQUIM</strong><span className="text-xs text-slate-500">CRM comercial</span></span>
+          <span><strong className="block text-sm tracking-wide text-white">TUPINIQUIM</strong><span className="text-xs text-slate-400">CRM comercial</span></span>
         </Link>
         <div className="my-6 h-px bg-white/10" />
         <Navigation actor={actor} />
         <div className="mt-auto rounded-2xl border border-white/10 bg-white/5 p-3">
-          <div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-full bg-amber-400 text-xs font-bold text-slate-950">{initials(actor.organizationName)}</span><span className="min-w-0"><strong className="block truncate text-xs text-white">{actor.organizationName}</strong><span className="text-[11px] text-slate-500">{actor.role}</span></span><ChevronDown className="ml-auto text-slate-500" size={15} /></div>
+          <div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-full bg-amber-400 text-xs font-bold text-slate-950">{initials(actor.organizationName)}</span><span className="min-w-0"><strong className="block truncate text-xs text-white">{actor.organizationName}</strong><span className="text-[11px] text-slate-400">{actor.role}</span></span><ChevronDown className="ml-auto text-slate-500" size={15} /></div>
         </div>
       </aside>
 

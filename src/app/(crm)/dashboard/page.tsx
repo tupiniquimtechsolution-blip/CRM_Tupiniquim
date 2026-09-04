@@ -25,11 +25,11 @@ export default function DashboardPage() {
 
       <section className="grid gap-5 xl:grid-cols-[1.35fr_.65fr]">
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="flex items-start justify-between"><div><p className="text-sm font-semibold text-slate-950">Receita conquistada</p><p className="mt-1 text-xs text-slate-500">Últimos 12 meses · valores conciliados</p></div><span className="flex items-center gap-1 text-xs font-bold text-emerald-600"><TrendingUp size={14} />18,4%</span></div>
+          <div className="flex items-start justify-between"><div><p className="text-sm font-semibold text-slate-950">Receita conquistada</p><p className="mt-1 text-xs text-slate-500">Últimos 12 meses · valores conciliados</p></div><span className="flex items-center gap-1 text-xs font-bold text-emerald-700"><TrendingUp size={14} />18,4%</span></div>
           <div className="mt-7 flex h-56 items-end gap-2 sm:gap-3" aria-label="Gráfico mensal de receita">
             {bars.map((height, index) => <div key={index} className="group flex h-full flex-1 items-end"><div className="w-full rounded-t-md bg-slate-200 transition group-hover:bg-amber-400" style={{ height: `${height}%` }} title={`${height} mil reais`} /></div>)}
           </div>
-          <div className="mt-3 flex justify-between text-[10px] font-medium uppercase tracking-wide text-slate-400"><span>Set</span><span>Dez</span><span>Mar</span><span>Jun</span><span>Ago</span></div>
+          <div className="mt-3 flex justify-between text-[10px] font-medium uppercase tracking-wide text-slate-600"><span>Set</span><span>Dez</span><span>Mar</span><span>Jun</span><span>Ago</span></div>
         </article>
 
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
