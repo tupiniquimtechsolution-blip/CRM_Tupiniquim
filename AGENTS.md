@@ -29,3 +29,13 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+
+## Tupiniquim Multi-LLM Toolbox
+
+As regras específicas acima permanecem prioritárias. Este `AGENTS.md` também é o contrato canônico para qualquer agente/LLM usado neste repositório.
+
+- Skill universal: `.agents/skills/tupiniquim-toolbox/SKILL.md`.
+- Fonte corporativa: `tupiniquimtechsolution-blip/Tupiniquim_AI_Dev_Studio` → `docs/AI_TOOLBOX/`.
+- Adaptadores `.claude/CLAUDE.md`, `QWEN.md` e `GEMINI.md` não podem contradizer este arquivo.
+- Claude, Qwen, Kimi, DeepSeek, Gemini, GPT, Grok e outros modelos recebem estas regras por meio do harness/agente.
