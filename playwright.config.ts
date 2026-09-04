@@ -30,6 +30,7 @@ export default defineConfig({
       NODE_ENV: productionE2E ? "production" : "development",
       DEMO_MODE: productionE2E ? "false" : "true",
       AUTH_SECRET: process.env.AUTH_SECRET ?? "test-only-auth-secret-32-characters",
+      AUTH_TRUST_HOST: "true",
       DATABASE_URL: process.env.DATABASE_URL ?? "postgresql://test:test@127.0.0.1:5432/test",
       AI_PROVIDER: "simulated",
       AUTH_RATE_LIMIT_MAX: "100",
