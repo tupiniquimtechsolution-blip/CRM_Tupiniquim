@@ -1,14 +1,13 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
 import { config } from "dotenv";
+import { resolveDatabaseUrl } from "@/lib/database-url";
 
 config({ path: ".env.local", quiet: true });
 config({ path: ".env", quiet: true });
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
-const connectionString =
-  process.env.DATABASE_URL ??
-  "postgresql://crm_tupiniquim:crm_tupiniquim@localhost:5432/crm_tupiniquim?schema=public";
+const connectionString = resolveDatabaseUrl();
 
 export const prisma =
   globalForPrisma.prisma ??
