@@ -18,7 +18,7 @@ describe("getCurrentActor", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.DEMO_MODE = "false";
-    process.env.NODE_ENV = "test";
+    vi.stubEnv("NODE_ENV", "test");
   });
 
   it("usa membership ativa do banco como fonte atual de role e organização", async () => {

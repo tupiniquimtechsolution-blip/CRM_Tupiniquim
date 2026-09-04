@@ -28,7 +28,7 @@ vi.mock("@/lib/db", () => ({
 describe("requestPasswordReset", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.NODE_ENV = "test";
+    vi.stubEnv("NODE_ENV", "test");
     mocks.consumeRateLimit.mockResolvedValue({ allowed: true, remaining: 4, retryAfterSeconds: 60 });
     mocks.updateMany.mockReturnValue({ op: "revoke-old" });
     mocks.createToken.mockReturnValue({ op: "create-new" });
