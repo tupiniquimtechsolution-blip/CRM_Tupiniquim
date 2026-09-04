@@ -44,3 +44,5 @@ jobs:
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e --project=desktop
+        env:
+          E2E_USE_PRODUCTION: "true"
