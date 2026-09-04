@@ -73,12 +73,5 @@
     "typescript": "^5",
     "vitest": "^4.1.10"
   },
-  "packageManager": "pnpm@11.16.0",
-  "pnpm": {
-    "overrides": {
-      "deepmerge-ts": "8.0.0",
-      "mysql2": "3.22.0",
-      "fast-uri": "3.1.6"
-    }
-  }
+  "packageManager": "pnpm@11.16.0"
 }
