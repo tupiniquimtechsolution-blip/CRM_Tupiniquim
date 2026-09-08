@@ -7,6 +7,7 @@ declare module "next-auth" {
     organizationId?: string;
     organizationName?: string;
     role?: AppRole;
+    sessionVersion?: number;
   }
 }
 
@@ -15,5 +16,6 @@ declare module "next-auth/jwt" {
     organizationId?: string;
     organizationName?: string;
     role?: AppRole;
+    sessionVersion?: number;
   }
 }

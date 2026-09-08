@@ -45,12 +45,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.sub = user.id;
         const membership = await prisma.membership.findFirst({
           where: { userId: user.id, status: "ACTIVE", organization: { active: true } },
-          include: { organization: true },
+          include: { organization: true, user: { select: { sessionVersion: true } } },
           orderBy: { createdAt: "asc" },
         });
         token.organizationId = membership?.organizationId;
         token.organizationName = membership?.organization.name;
         token.role = membership?.role;
+        token.sessionVersion = membership?.user.sessionVersion;
       }
       return token;
     },
@@ -61,6 +62,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.role = ["OWNER", "ADMIN", "MANAGER", "SALES", "SUPPORT", "VIEWER"].includes(String(token.role))
         ? token.role as "OWNER" | "ADMIN" | "MANAGER" | "SALES" | "SUPPORT" | "VIEWER"
         : undefined;
+      session.sessionVersion = typeof token.sessionVersion === "number" ? token.sessionVersion : undefined;
       return session;
     },
   },
