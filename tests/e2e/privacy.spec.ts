@@ -29,5 +29,9 @@ test("acesso LGPD exige identidade antes do preview", async ({ page }) => {
   request = page.locator("article").filter({ hasText: email });
   await expect(request.getByRole("button", { name: "Gerar preview" })).toBeVisible();
   await request.getByRole("button", { name: "Gerar preview" }).click();
-  await expect(request.getByText("Preview válido até", { exact: false })).toBeVisible();
+  const previewReady = request.getByText("Preview válido até", { exact: false });
+  const previewError = request.getByRole("alert");
+  await expect(previewReady.or(previewError)).toBeVisible({ timeout: 20_000 });
+  if (await previewError.isVisible()) throw new Error(`Falha do preview na UI: ${await previewError.textContent()}`);
+  await expect(previewReady).toBeVisible();
 });
