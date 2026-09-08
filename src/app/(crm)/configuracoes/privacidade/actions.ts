@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getCurrentActor } from "@/lib/current-actor";
-import { executePrivacyRequest, previewPrivacyRequest } from "@/modules/privacy/execution";
 import { createPrivacyRequest, createSecurityIncident, saveRetentionPolicy, updatePrivacyRequest } from "@/modules/privacy/service";
 
 const value = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
@@ -27,14 +27,11 @@ export async function updatePrivacyRequestAction(formData: FormData) {
   revalidatePath("/configuracoes/privacidade");
 }
 
-export async function previewPrivacyRequestAction(requestId: string) {
-  return previewPrivacyRequest(await getCurrentActor(), requestId);
-}
-
-export async function executePrivacyRequestAction(requestId: string, previewToken: string) {
-  const result = await executePrivacyRequest(await getCurrentActor(), requestId, previewToken);
-  revalidatePath("/configuracoes/privacidade");
-  return result;
+export async function openPrivacyPreviewAction(formData: FormData) {
+  await getCurrentActor();
+  const requestId = value(formData, "requestId");
+  if (!requestId) throw new Error("Solicitação inválida.");
+  redirect(`/configuracoes/privacidade/${encodeURIComponent(requestId)}/preview`);
 }
 
 export async function saveRetentionPolicyAction(formData: FormData) {
