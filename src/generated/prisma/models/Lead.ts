@@ -673,14 +673,6 @@ export type EnumLeadStatusFieldUpdateOperationsInput = {
   set?: $Enums.LeadStatus
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type LeadCreateNestedOneWithoutTagsInput = {
   create?: Prisma.XOR<Prisma.LeadCreateWithoutTagsInput, Prisma.LeadUncheckedCreateWithoutTagsInput>
   connectOrCreate?: Prisma.LeadCreateOrConnectWithoutTagsInput
