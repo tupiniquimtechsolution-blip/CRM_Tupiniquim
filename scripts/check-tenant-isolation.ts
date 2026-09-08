@@ -7,6 +7,8 @@ import { dispatchAutomationEvent, listAutomationWorkspace } from "../src/modules
 import { listIntegrationWorkspace } from "../src/modules/integrations/service";
 import { getCrmReport } from "../src/modules/reports/service";
 import { listAiWorkspace } from "../src/modules/ai/service";
+import { createPrivacyRequest, updatePrivacyRequest } from "../src/modules/privacy/service";
+import { executePrivacyRequest, previewPrivacyRequest } from "../src/modules/privacy/execution";
 import type { TenantActor } from "../src/modules/shared/tenant";
 
 const main = await prisma.organization.findUniqueOrThrow({ where: { slug: "tupiniquim-tech" } });
@@ -27,7 +29,8 @@ const foreignAutomation = await prisma.automation.upsert({
 });
 const foreignAiRequest = await prisma.aiAssistRequest.create({ data: { organizationId: other.id, requestedById: "foreign-user", kind: "CUSTOMER_SUMMARY", entityType: "Company", entityId: foreignCompany.id, provider: "SIMULATED", model: "test", inputDigest: "foreign", sanitizedContext: {}, output: {}, status: "GENERATED" } });
 
-const actor: TenantActor = { userId: "integration-test", organizationId: main.id, organizationName: main.name, role: "OWNER" };
+const mainMembership = await prisma.membership.findFirstOrThrow({ where: { organizationId: main.id, status: "ACTIVE" }, include: { user: true } });
+const actor: TenantActor = { userId: mainMembership.userId, organizationId: main.id, organizationName: main.name, role: "OWNER" };
 const visibleCompanies = await listCompanies(actor);
 assert.equal(visibleCompanies.some((company) => company.id === foreignCompany.id), false, "Consulta vazou empresa de outro tenant.");
 const visibleCustomers = await listCustomers(actor);
@@ -61,6 +64,32 @@ assert.equal(await prisma.automationRun.count({ where: { organizationId: main.id
 const idempotentRun = await prisma.automationRun.findFirstOrThrow({ where: { organizationId: main.id, automationId: seedAutomation.id, eventKey: event.eventKey }, include: { actionLogs: true } });
 assert.equal(new Set(idempotentRun.actionLogs.map((log) => log.actionIndex)).size, idempotentRun.actionLogs.length, "Ação foi repetida na retentativa.");
 
+const privacyEmail = "privacy-integration@synthetic.local";
+const mainPrivacyCompany = await prisma.company.create({
+  data: { organizationId: main.id, name: "Privacy Integration Main", document: "88888888888888", email: privacyEmail, source: "integration", lifecycle: "LEAD" },
+});
+await prisma.contact.create({ data: { organizationId: main.id, companyId: mainPrivacyCompany.id, name: "Titular Main", email: privacyEmail } });
+const foreignPrivacyCompany = await prisma.company.create({
+  data: { organizationId: other.id, name: "Privacy Integration Foreign", document: "77777777777777", email: privacyEmail, source: "integration", lifecycle: "LEAD" },
+});
+const foreignPrivacyContact = await prisma.contact.create({ data: { organizationId: other.id, companyId: foreignPrivacyCompany.id, name: "Titular Foreign", email: privacyEmail } });
+const foreignPrivacyRequest = await prisma.privacyRequest.create({
+  data: { organizationId: other.id, protocol: "LGPD-FOREIGN-INTEGRATION", type: "CONFIRMATION_ACCESS", status: "IN_PROGRESS", subjectEmail: privacyEmail, dueAt: new Date(Date.now() + 86_400_000), createdById: "foreign-test" },
+});
+const privacyRequest = await createPrivacyRequest(actor, { type: "PORTABILITY", subjectEmail: privacyEmail, subjectName: "Titular Main", details: "" });
+await updatePrivacyRequest(actor, privacyRequest.id, "IDENTITY_VERIFICATION");
+await updatePrivacyRequest(actor, privacyRequest.id, "IN_PROGRESS");
+await assert.rejects(previewPrivacyRequest(actor, foreignPrivacyRequest.id), /indisponível/i);
+const preview = await previewPrivacyRequest(actor, privacyRequest.id);
+const executed = await executePrivacyRequest(actor, privacyRequest.id, preview.token);
+assert.equal(executed.packageData.data.contacts.some((contact) => contact.id === foreignPrivacyContact.id), false, "Portabilidade vazou contato de outro tenant.");
+assert.equal(executed.packageData.data.companies.some((company) => company.id === foreignPrivacyCompany.id), false, "Portabilidade vazou empresa de outro tenant.");
+assert.ok(await prisma.contact.findUnique({ where: { id: foreignPrivacyContact.id } }), "Execução de privacidade alterou dados do outro tenant.");
+await assert.rejects(executePrivacyRequest(actor, privacyRequest.id, preview.token), /atendimento/i);
+
+await prisma.auditLog.deleteMany({ where: { organizationId: main.id, entityId: privacyRequest.id } });
+await prisma.privacyRequest.delete({ where: { id: privacyRequest.id } });
+await prisma.company.delete({ where: { id: mainPrivacyCompany.id } });
 await prisma.organization.delete({ where: { id: other.id } });
 await prisma.$disconnect();
-console.log("Integração aprovada: tenants isolados, relatórios conciliados e automação idempotente.");
+console.log("Integração aprovada: tenants isolados, relatórios conciliados, automação idempotente e privacidade isolada.");

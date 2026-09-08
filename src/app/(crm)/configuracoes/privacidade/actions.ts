@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getCurrentActor } from "@/lib/current-actor";
+import { executePrivacyRequest, previewPrivacyRequest } from "@/modules/privacy/execution";
 import { createPrivacyRequest, createSecurityIncident, saveRetentionPolicy, updatePrivacyRequest } from "@/modules/privacy/service";
 
 const value = (formData: FormData, key: string) => String(formData.get(key) ?? "").trim();
@@ -20,10 +21,20 @@ export async function updatePrivacyRequestAction(formData: FormData) {
   await updatePrivacyRequest(
     await getCurrentActor(),
     value(formData, "requestId"),
-    value(formData, "status") as "IN_PROGRESS",
+    value(formData, "status") as "IDENTITY_VERIFICATION" | "IN_PROGRESS" | "COMPLETED" | "DENIED",
     value(formData, "resolution"),
   );
   revalidatePath("/configuracoes/privacidade");
+}
+
+export async function previewPrivacyRequestAction(requestId: string) {
+  return previewPrivacyRequest(await getCurrentActor(), requestId);
+}
+
+export async function executePrivacyRequestAction(requestId: string, previewToken: string) {
+  const result = await executePrivacyRequest(await getCurrentActor(), requestId, previewToken);
+  revalidatePath("/configuracoes/privacidade");
+  return result;
 }
 
 export async function saveRetentionPolicyAction(formData: FormData) {

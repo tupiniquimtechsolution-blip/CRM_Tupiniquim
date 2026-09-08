@@ -81,26 +81,103 @@ export async function updatePrivacyRequest(actor: TenantActor, requestId: string
   assertPermission(actor, "privacy:write");
   const nextStatus = statusSchema.parse(status);
   const existing = await prisma.privacyRequest.findFirstOrThrow({ where: { id: requestId, organizationId: actor.organizationId } });
-  const updated = await prisma.$transaction(async (tx) => {
-    const result = await tx.privacyRequest.update({
-      where: { id: existing.id },
+  if (["COMPLETED", "DENIED"].includes(existing.status)) throw new Error("Solicitação já encerrada.");
+
+  const allowed: Record<typeof existing.status, readonly string[]> = {
+    RECEIVED: ["IDENTITY_VERIFICATION", "DENIED"],
+    IDENTITY_VERIFICATION: ["IN_PROGRESS", "DENIED"],
+    IN_PROGRESS: ["COMPLETED", "DENIED"],
+    COMPLETED: [],
+    DENIED: [],
+  };
+  if (!allowed[existing.status].includes(nextStatus)) throw new Error("Transição de privacidade inválida.");
+  if (nextStatus === "COMPLETED" && ["CONFIRMATION_ACCESS", "PORTABILITY"].includes(existing.type)) {
+    throw new Error("Use o fluxo de preview e execução para concluir acesso ou portabilidade.");
+  }
+
+  const normalizedResolution = resolution?.trim().slice(0, 2_000) || null;
+  if (nextStatus === "DENIED" && !normalizedResolution) throw new Error("Informe a justificativa para negar a solicitação.");
+
+  if (nextStatus === "COMPLETED") {
+    const identityAudit = await prisma.auditLog.findFirst({
+      where: {
+        organizationId: actor.organizationId,
+        entityType: "PrivacyRequest",
+        entityId: existing.id,
+        action: "privacy.identity.verified",
+      },
+      select: { id: true },
+    });
+    if (!identityAudit) throw new Error("Confirme a verificação de identidade antes de concluir a solicitação.");
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const changed = await tx.privacyRequest.updateMany({
+      where: {
+        id: existing.id,
+        organizationId: actor.organizationId,
+        status: existing.status,
+        updatedAt: existing.updatedAt,
+      },
       data: {
         status: nextStatus,
-        resolution: resolution?.trim().slice(0, 2_000) || null,
+        resolution: normalizedResolution,
         reviewedById: actor.userId,
         completedAt: ["COMPLETED", "DENIED"].includes(nextStatus) ? new Date() : null,
       },
     });
+    if (changed.count !== 1) throw new Error("Solicitação alterada por outro operador. Recarregue e tente novamente.");
+
+    let revokedConsents = 0;
     if (nextStatus === "COMPLETED" && existing.type === "CONSENT_REVOCATION") {
-      await tx.privacyConsent.updateMany({
-        where: { organizationId: actor.organizationId, subjectEmail: existing.subjectEmail, status: "GRANTED" },
+      const revoked = await tx.privacyConsent.updateMany({
+        where: {
+          organizationId: actor.organizationId,
+          subjectEmail: { equals: existing.subjectEmail, mode: "insensitive" },
+          status: "GRANTED",
+        },
         data: { status: "REVOKED", revokedAt: new Date() },
       });
+      revokedConsents = revoked.count;
+      await tx.auditLog.create({
+        data: {
+          organizationId: actor.organizationId,
+          actorId: actor.userId,
+          action: "privacy.consent.revoked",
+          entityType: "PrivacyRequest",
+          entityId: existing.id,
+          after: { count: revokedConsents },
+        },
+      });
     }
-    return result;
+
+    if (existing.status === "IDENTITY_VERIFICATION" && nextStatus === "IN_PROGRESS") {
+      await tx.auditLog.create({
+        data: {
+          organizationId: actor.organizationId,
+          actorId: actor.userId,
+          action: "privacy.identity.verified",
+          entityType: "PrivacyRequest",
+          entityId: existing.id,
+          after: { status: nextStatus },
+        },
+      });
+    }
+
+    await tx.auditLog.create({
+      data: {
+        organizationId: actor.organizationId,
+        actorId: actor.userId,
+        action: "privacy.request.updated",
+        entityType: "PrivacyRequest",
+        entityId: existing.id,
+        before: { status: existing.status },
+        after: { status: nextStatus, type: existing.type, ...(revokedConsents ? { revokedConsents } : {}) },
+      },
+    });
+
+    return tx.privacyRequest.findFirstOrThrow({ where: { id: existing.id, organizationId: actor.organizationId } });
   });
-  await recordAudit(actor, { action: "privacy.request.updated", entityType: "PrivacyRequest", entityId: updated.id, before: { status: existing.status }, after: { status: updated.status } });
-  return updated;
 }
 
 export async function saveRetentionPolicy(actor: TenantActor, input: z.input<typeof retentionSchema>) {
