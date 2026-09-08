@@ -12,7 +12,7 @@ test.beforeEach(async ({ page }) => {
 test("acesso LGPD exige identidade antes do preview", async ({ page }) => {
   const email = `privacy-e2e-${Date.now()}@synthetic.local`;
   await page.goto("/configuracoes/privacidade");
-  await page.getByRole("button", { name: "Registrar solicitação" }).click();
+  await page.locator("summary").filter({ hasText: "Registrar solicitação" }).click();
   await page.getByLabel("Direito exercido *").selectOption("CONFIRMATION_ACCESS");
   await page.getByLabel("E-mail do titular *").fill(email);
   await page.getByRole("button", { name: "Gerar protocolo" }).click();
