@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { executePrivacyRequestAction, previewPrivacyRequestAction } from "./actions";
 
 type Preview = {
@@ -14,41 +14,43 @@ export function PrivacyExportControls({ requestId, requestType }: { requestId: s
   const router = useRouter();
   const [preview, setPreview] = useState<Preview | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
 
-  function generatePreview() {
-    startTransition(async () => {
-      try {
-        setError(null);
-        setPreview(await previewPrivacyRequestAction(requestId));
-      } catch (cause) {
-        setPreview(null);
-        setError(cause instanceof Error ? cause.message : "Falha ao gerar preview.");
-      }
-    });
+  async function generatePreview() {
+    setPending(true);
+    setError(null);
+    try {
+      setPreview(await previewPrivacyRequestAction(requestId));
+    } catch (cause) {
+      setPreview(null);
+      setError(cause instanceof Error ? cause.message : "Falha ao gerar preview.");
+    } finally {
+      setPending(false);
+    }
   }
 
-  function executeAndDownload() {
+  async function executeAndDownload() {
     if (!preview) return;
-    startTransition(async () => {
-      try {
-        setError(null);
-        const result = await executePrivacyRequestAction(requestId, preview.token);
-        const blob = new Blob([JSON.stringify(result.packageData, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const anchor = document.createElement("a");
-        anchor.href = url;
-        anchor.download = result.fileName;
-        document.body.appendChild(anchor);
-        anchor.click();
-        anchor.remove();
-        URL.revokeObjectURL(url);
-        setPreview(null);
-        router.refresh();
-      } catch (cause) {
-        setError(cause instanceof Error ? cause.message : "Falha ao executar a solicitação.");
-      }
-    });
+    setPending(true);
+    setError(null);
+    try {
+      const result = await executePrivacyRequestAction(requestId, preview.token);
+      const blob = new Blob([JSON.stringify(result.packageData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = result.fileName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      setPreview(null);
+      router.refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Falha ao executar a solicitação.");
+    } finally {
+      setPending(false);
+    }
   }
 
   const total = preview ? Object.values(preview.counts).reduce((sum, value) => sum + value, 0) : 0;
