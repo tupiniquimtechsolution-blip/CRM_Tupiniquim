@@ -7,6 +7,20 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       DATABASE_URL: postgresql://test:test@127.0.0.1:5432/test
       AUTH_SECRET: test-only-auth-secret-32-characters
@@ -22,6 +36,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm prisma:generate
+      - run: pnpm db:deploy
+      - run: pnpm db:seed
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
