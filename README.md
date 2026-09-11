@@ -1,5 +1,10 @@
 # CRM Tupiniquim
 
+> [!TIP]
+> **Apresentação do projeto:** [abrir PDF](docs/APRESENTACAO_PROJETO.pdf)  
+> **Qualidade e segurança:** [auditoria Tupiniquim Toolbox](docs/TOOLBOX_AUDIT_2026-09-08.md)
+
+
 CRM comercial multiempresa da TUPINIQUIM TECH SOLUTIONS. A aplicação cobre os fluxos das Fases 1–8: operação comercial, retenção, automações idempotentes, integrações em sandbox, relatórios conciliáveis, IA assistiva com revisão humana e controles de hardening/LGPD.
 
 ## Stack
