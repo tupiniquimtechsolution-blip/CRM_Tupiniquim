@@ -20,6 +20,25 @@ export class CaptureInputError extends Error {
   }
 }
 
+export function isValidCaptureEmail(value: string) {
+  if (!value || value.length > 254) return false;
+
+  let atIndex = -1;
+  for (let index = 0; index < value.length; index += 1) {
+    const char = value[index];
+    if (char === "@") {
+      if (atIndex !== -1) return false;
+      atIndex = index;
+      continue;
+    }
+    if (char === " " || char === "\t" || char === "\n" || char === "\r" || char === "\f" || char === "\v") return false;
+  }
+
+  if (atIndex <= 0 || atIndex >= value.length - 1) return false;
+  const dotIndex = value.indexOf(".", atIndex + 1);
+  return dotIndex > atIndex + 1 && dotIndex < value.length - 1;
+}
+
 function clean(raw: Record<string, unknown>): CapturePayload {
   const value = (key: string) => String(raw[key] ?? "").trim();
   const consent = ["on", "true", "1", "yes"].includes(value("privacyConsent").toLocaleLowerCase());
@@ -33,11 +52,11 @@ function clean(raw: Record<string, unknown>): CapturePayload {
     privacyNoticeVersion: value("privacyNoticeVersion"),
   };
 
-  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(result.email);
+  const validEmail = isValidCaptureEmail(result.email);
   if (
     result.contactName.length < 2 || result.contactName.length > 120 ||
     result.companyName.length < 2 || result.companyName.length > 160 ||
-    !validEmail || result.email.length > 254 ||
+    !validEmail ||
     result.phone.length > 40 ||
     result.interest.length < 3 || result.interest.length > 2_000
   ) {
