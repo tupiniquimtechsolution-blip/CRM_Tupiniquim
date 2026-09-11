@@ -29,7 +29,7 @@ jobs:
       AUTH_SECRET: test-only-auth-secret-32-characters
       DEMO_MODE: "true"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
         with:
           version: 11.16.0
