@@ -4,9 +4,26 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   quality:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       DATABASE_URL: postgresql://test:test@127.0.0.1:5432/test
       AUTH_SECRET: test-only-auth-secret-32-characters
@@ -21,10 +38,44 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --prod --audit-level high
       - run: pnpm prisma:generate
+      - run: pnpm db:deploy
+      - run: pnpm db:seed
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      - run: pnpm test:integration
+      - run: pnpm ops:index-check
+      - run: pnpm ops:backup
+      - run: pnpm ops:restore-drill
       - run: pnpm build
+      - name: Smoke de carga no build de produção
+        env:
+          DEMO_MODE: "false"
+          APP_URL: https://crm.local.test
+          PRIVACY_CONTACT_EMAIL: privacidade@example.invalid
+          NEXT_SERVER_ACTIONS_ENCRYPTION_KEY: MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI=
+          AI_PROVIDER: simulated
+          LOAD_BASE_URL: http://127.0.0.1:3200
+          LOAD_REQUESTS: "100"
+          LOAD_CONCURRENCY: "10"
+        run: |
+          pnpm exec next start -H 127.0.0.1 -p 3200 >/tmp/crm-next.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..60}; do
+            if curl -fsS http://127.0.0.1:3200/api/health >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:3200/api/health >/dev/null
+          pnpm test:load
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e --project=desktop
+        env:
+          E2E_USE_PRODUCTION: "true"
+      - run: pnpm test:e2e --project=mobile
+        env:
+          E2E_USE_PRODUCTION: "true"

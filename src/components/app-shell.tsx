@@ -37,18 +37,18 @@ export function AppShell({ actor, children }: { actor: TenantActor; children: Re
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-slate-950 px-4 py-6 lg:flex">
         <Link href="/dashboard" className="flex items-center gap-3 px-2">
           <span className="grid size-10 place-items-center rounded-xl bg-amber-500 text-lg font-black text-slate-950">T</span>
-          <span><strong className="block text-sm tracking-wide text-white">TUPINIQUIM</strong><span className="text-xs text-slate-500">CRM comercial</span></span>
+          <span><strong className="block text-sm tracking-wide text-white">TUPINIQUIM</strong><span className="text-xs text-slate-400">CRM comercial</span></span>
         </Link>
         <div className="my-6 h-px bg-white/10" />
         <Navigation actor={actor} />
         <div className="mt-auto rounded-2xl border border-white/10 bg-white/5 p-3">
-          <div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-full bg-amber-400 text-xs font-bold text-slate-950">{initials(actor.organizationName)}</span><span className="min-w-0"><strong className="block truncate text-xs text-white">{actor.organizationName}</strong><span className="text-[11px] text-slate-500">{actor.role}</span></span><ChevronDown className="ml-auto text-slate-500" size={15} /></div>
+          <div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-full bg-amber-400 text-xs font-bold text-slate-950">{initials(actor.organizationName)}</span><span className="min-w-0"><strong className="block truncate text-xs text-white">{actor.organizationName}</strong><span className="text-[11px] text-slate-400">{actor.role}</span></span><ChevronDown className="ml-auto text-slate-500" size={15} /></div>
         </div>
       </aside>
 
       <div className="lg:pl-64">
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur sm:px-6 lg:px-8">
-          <details className="relative lg:hidden"><summary className="grid size-10 cursor-pointer list-none place-items-center rounded-xl border border-slate-200"><Menu size={20} /></summary><div className="absolute left-0 top-12 w-64 rounded-2xl bg-slate-950 p-4 shadow-2xl"><Navigation actor={actor} /></div></details>
+          <details className="relative lg:hidden"><summary aria-label="Abrir menu de navegação" className="grid size-10 cursor-pointer list-none place-items-center rounded-xl border border-slate-200"><Menu aria-hidden="true" size={20} /></summary><div className="absolute left-0 top-12 w-64 rounded-2xl bg-slate-950 p-4 shadow-2xl"><Navigation actor={actor} /></div></details>
           <div className="relative hidden max-w-md flex-1 sm:block"><Search className="pointer-events-none absolute left-3 top-2.5 text-slate-400" size={18} /><input aria-label="Busca global" className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm outline-none transition focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/20" placeholder="Buscar empresas, leads e propostas..." /></div>
           <div className="ml-auto flex items-center gap-2"><Link aria-label="Relatórios" className="grid size-10 place-items-center rounded-xl text-slate-500 hover:bg-slate-100" href="/relatorios"><ChartNoAxesCombined size={19} /></Link>{can(actor.role, "privacy:read") && <Link aria-label="Configurações de privacidade" className="grid size-10 place-items-center rounded-xl text-slate-500 hover:bg-slate-100" href="/configuracoes/privacidade"><Settings2 size={19} /></Link>}<button aria-label="Notificações" className="relative grid size-10 place-items-center rounded-xl text-slate-500 hover:bg-slate-100"><Bell size={19} /><span className="absolute right-2 top-2 size-2 rounded-full bg-red-500 ring-2 ring-white" /></button></div>
         </header>

@@ -1,14 +1,14 @@
-import { auth } from "@/auth";
+import { resolveCurrentActor } from "@/lib/current-actor";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.organizationId || !["OWNER", "ADMIN", "MANAGER"].includes(String(session.role))) {
+  const actor = await resolveCurrentActor();
+  if (!actor || !["OWNER", "ADMIN", "MANAGER"].includes(actor.role)) {
     return Response.json({ error: "Não autorizado." }, { status: 401, headers: { "Cache-Control": "no-store" } });
   }
-  const organizationId = session.organizationId;
+  const organizationId = actor.organizationId;
   const started = performance.now();
   await prisma.$queryRaw`SELECT 1`;
   const [failedAutomations, failedWebhooks, pendingApprovals, overduePrivacyRequests, highIncidents] = await Promise.all([
