@@ -76,3 +76,6 @@ jobs:
       - run: pnpm test:e2e --project=desktop
         env:
           E2E_USE_PRODUCTION: "true"
+      - run: pnpm test:e2e --project=mobile
+        env:
+          E2E_USE_PRODUCTION: "true"
