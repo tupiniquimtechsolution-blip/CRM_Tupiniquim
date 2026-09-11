@@ -50,8 +50,8 @@ importers:
         specifier: 7.4.0
         version: 7.4.0(zod@4.4.3)
       papaparse:
-        specifier: ^5.5.4
-        version: 5.5.4
+        specifier: ^5.7.0
+        version: 5.7.0
       pg:
         specifier: ^8.23.0
         version: 8.23.0
@@ -3038,8 +3038,8 @@ packages:
     resolution: {integrity: sha512-LaNjtRWUBY++zB5nE/NwcaoMylSPk+S+ZHNB1TzdbMJMny6dynpAGt7X/tl/QYq3TIeE6nxHppbo2LGymrG5Pw==}
     engines: {node: '>=10'}
 
-  papaparse@5.5.4:
-    resolution: {integrity: sha512-SwzWD9gl/ElwYLCI0nUja1mFJzjq2D8ziShfNBa7zCHzkOozeOGDwHWQ+tvCzEZcewecWZ5U7kUopDnG+DFYEQ==}
+  papaparse@5.7.0:
+    resolution: {integrity: sha512-qBGxg/7Q3Kl9Wfhrz2Z74UnvnHTXLNG6jmKJFeBvP2+y4lV7So+7SR62+Zd47JvdrCkX+nDcnr0ObPzek/+6RA==}
 
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
@@ -6499,7 +6499,7 @@ snapshots:
     dependencies:
       p-limit: 3.1.0
 
-  papaparse@5.5.4: {}
+  papaparse@5.7.0: {}
 
   parent-module@1.0.1:
     dependencies:
