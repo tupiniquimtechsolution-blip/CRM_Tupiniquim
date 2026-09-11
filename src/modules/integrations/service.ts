@@ -3,6 +3,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/db";
 import { assertPermission, tenantWhere, type TenantActor } from "@/modules/shared/tenant";
+import { assertOutboundPrivacyAllowed } from "@/modules/privacy/communication";
 import { integrationAdapter } from "./adapters";
 
 function sha256(value: string) {
@@ -112,6 +113,7 @@ export async function requestOutboundApproval(input: {
   idempotencyKey: string;
   templateId?: string;
 }) {
+  await assertOutboundPrivacyAllowed({ organizationId: input.organizationId, provider: input.provider, recipient: input.recipient });
   if (input.templateId) {
     const template = await prisma.messageTemplate.findFirst({ where: { id: input.templateId, organizationId: input.organizationId, status: "APPROVED" } });
     if (!template) throw new Error("Template aprovado não encontrado.");
@@ -133,6 +135,7 @@ export async function reviewOutboundApproval(actor: TenantActor, approvalId: str
     await recordAudit(actor, { action: "outbound.rejected", entityType: "OutboundApproval", entityId: rejected.id, after: { provider: rejected.provider, status: rejected.status } });
     return rejected;
   }
+  await assertOutboundPrivacyAllowed({ organizationId: actor.organizationId, provider: approval.provider, recipient: approval.recipient });
   const payload = approval.payload && typeof approval.payload === "object" && !Array.isArray(approval.payload) ? approval.payload as Record<string, unknown> : {};
   const result = await integrationAdapter(approval.provider).deliver({ provider: approval.provider, recipient: approval.recipient, payload, idempotencyKey: approval.idempotencyKey });
   const approved = await prisma.outboundApproval.update({

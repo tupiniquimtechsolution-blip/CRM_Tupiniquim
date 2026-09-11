@@ -91,8 +91,9 @@ export async function updatePrivacyRequest(actor: TenantActor, requestId: string
     DENIED: [],
   };
   if (!allowed[existing.status].includes(nextStatus)) throw new Error("Transição de privacidade inválida.");
-  if (nextStatus === "COMPLETED" && ["CONFIRMATION_ACCESS", "PORTABILITY"].includes(existing.type)) {
-    throw new Error("Use o fluxo de preview e execução para concluir acesso ou portabilidade.");
+  const dedicatedExecution = ["CONFIRMATION_ACCESS", "PORTABILITY", "CORRECTION", "ANONYMIZATION_BLOCKING_DELETION", "AUTOMATED_DECISION_REVIEW"];
+  if (nextStatus === "COMPLETED" && dedicatedExecution.includes(existing.type)) {
+    throw new Error("Este direito exige fluxo técnico dedicado antes da conclusão.");
   }
 
   const normalizedResolution = resolution?.trim().slice(0, 2_000) || null;
@@ -147,6 +148,19 @@ export async function updatePrivacyRequest(actor: TenantActor, requestId: string
           entityType: "PrivacyRequest",
           entityId: existing.id,
           after: { count: revokedConsents },
+        },
+      });
+    }
+
+    if (nextStatus === "COMPLETED" && existing.type === "OPPOSITION") {
+      await tx.auditLog.create({
+        data: {
+          organizationId: actor.organizationId,
+          actorId: actor.userId,
+          action: "privacy.opposition.recorded",
+          entityType: "PrivacyRequest",
+          entityId: existing.id,
+          after: { enforcement: "email-sandbox-outbound", status: "ACTIVE" },
         },
       });
     }
